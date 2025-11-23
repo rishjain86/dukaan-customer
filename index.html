@@ -1,508 +1,583 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dukaan — Customer App</title>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dukaan — Customer / Part-1</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <style>
-    :root {
-      --accent: #0d6efd;
-      --bg: #f4f6fb;
-      --text-muted: #6c757d;
+    :root{--primary:#1976d2;}
+    body{background:#f5f6f8;font-family:system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    .topbar{background:var(--primary);color:#fff;padding:10px 12px;display:flex;align-items:center;gap:12px;justify-content:space-between;}
+    .search-input{max-width:420px;width:100%;}
+    .category-row{padding:8px 12px}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:12px;}
+    .item-card{background:#fff;border:1px solid #e6e9ee;border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center;min-height:220px; box-shadow:0 1px 2px rgba(0,0,0,0.03);}
+    .item-image{width:100%;height:120px;object-fit:contain;border-radius:6px;background:#fafafa}
+    .item-name{font-weight:600;font-size:14px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:center}
+    .item-price{font-weight:700;margin-top:6px}
+    .item-meta{font-size:12px;color:#6b7280;margin-top:4px}
+    .btn-add{margin-top:auto;width:100%;border-radius:6px}
+    .cart-fab{position:fixed;right:18px;bottom:18px;background:var(--primary);color:#fff;border-radius:28px;padding:10px 18px;box-shadow:0 6px 18px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;cursor:pointer;z-index:999}
+    .cart-count{background:#ef4444;color:#fff;border-radius:50%;padding:2px 6px;font-size:12px;display:inline-block}
+    .placeholder-img{width:100%;height:120px;display:flex;align-items:center;justify-content:center;color:#9ca3af;background:#fbfdff}
+    /* responsive small */
+    @media (max-width:480px){
+      .product-grid{grid-template-columns:repeat(2,1fr)}
+      .search-input{max-width:160px}
     }
-
-    body {
-      background: var(--bg);
-      font-family: system-ui, -apple-system, Roboto, sans-serif;
-      padding-bottom: 80px;
-    }
-
-    .topbar {
-      background: linear-gradient(90deg, #0b5ed7, #0d6efd);
-      color: white;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 3px 10px rgba(0,0,0,.15);
-    }
-
-    .brand {
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .search-box {
-      max-width: 420px;
-    }
-
-    .item-card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 12px;
-      display: flex;
-      gap: 14px;
-      box-shadow: 0 6px 16px rgba(0,0,0,.06);
-      border: 1px solid #eee;
-    }
-
-    .item-img {
-      width: 70px;
-      height: 70px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: #fff;
-    }
-
-    .price {
-      font-weight: bold;
-      font-size: 18px;
-      color: #000;
-    }
-
-    .muted {
-      color: var(--text-muted);
-    }
-
-    .cart-btn {
-      position: fixed;
-      bottom: 18px;
-      right: 18px;
-      z-index: 999;
-    }
-
-    .cart-floating {
-      background: #0d6efd;
-      color: #fff;
-      border-radius: 50px;
-      padding: 14px 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.2);
-      font-size: 18px;
-    }
-
-    .cart-count {
-      background: #dc3545;
-      color: #fff;
-      font-size: 13px;
-      padding: 2px 7px;
-      border-radius: 50px;
-      position: absolute;
-      top: -8px;
-      right: -10px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 10px;
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
   </style>
 </head>
-
 <body>
 
   <div class="topbar">
-    <div>
-      <div class="brand">🛒 Dukaan Customer</div>
-      <small class="muted">Shop: <span id="shop-id-label">—</span></small>
+    <div class="d-flex align-items-center gap-2">
+      <strong>📦 Dukaan</strong>
+      <small id="shop-label" class="text-white-50">SHOP001</small>
     </div>
-
-    <div class="search-box">
-      <input id="search" class="form-control form-control-sm" placeholder="Search items...">
-    </div>
-  </div>
-
-  <div class="container py-3">
-    <div class="mb-2">
-      <select id="category-filter" class="form-select form-select-sm">
+    <div class="d-flex align-items-center gap-2">
+      <input id="searchInput" class="form-control form-control-sm search-input" placeholder="Search items..." oninput="applyFilters()">
+      <select id="categoryFilter" class="form-select form-select-sm ms-2" onchange="applyFilters()">
         <option value="">All Categories</option>
       </select>
     </div>
-
-    <div id="items-list" class="row g-3"></div>
-
-    <div id="empty-items" class="empty-state d-none">
-      No items found.
-    </div>
   </div>
 
-  <div class="cart-btn">
-    <button id="cart-button" class="cart-floating position-relative">
-      🛒 Cart • ₹<span id="cart-total">0</span>
-      <span id="cart-count" class="cart-count">0</span>
-    </button>
+  <div class="category-row">
+    <!-- extra filters can go here -->
   </div>
-  <!-- CART MODAL -->
+
+  <div id="items-container" class="product-grid" aria-live="polite"></div>
+
+  <div id="cartFab" class="cart-fab" onclick="openCart()">
+    <span style="font-size:18px">🛒</span>
+    <div>Cart • ₹<span id="cartTotal">0</span></div>
+    <div id="cartCount" class="cart-count">0</div>
+  </div>
+
+  <!-- cart modal (skeleton) -->
   <div class="modal fade" id="cartModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">🛒 Your Cart</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title">Your Cart</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
-        <div class="modal-body">
-          <div id="cart-items"></div>
-
-          <hr>
-
-          <div class="d-flex justify-content-between">
-            <strong>Total Amount:</strong>
-            <span class="fw-bold">₹<span id="cart-total-2">0</span></span>
-          </div>
-        </div>
-
+        <div class="modal-body" id="cartBody"></div>
         <div class="modal-footer">
+          <div class="me-auto fw-bold">Total: ₹<span id="finalTotal">0</span></div>
           <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button class="btn btn-success" id="checkout-btn">Proceed to Checkout</button>
+          <button class="btn btn-success">Proceed to Checkout</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- CHECKOUT MODAL -->
-  <div class="modal fade" id="checkoutModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
+  <script>
+  // ===== PART-1: GLOBALS, CONFIGS, HELPERS =====
+  const FIREBASE_CONFIG = {
+    apiKey: "REPLACE_WITH_YOURS",
+    authDomain: "REPLACE.firebaseapp.com",
+    projectId: "REPLACE",
+    storageBucket: "REPLACE.appspot.com",
+  };
+  if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.firestore();
 
-        <div class="modal-header">
-          <h5 class="modal-title">📦 Checkout</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
+  // Cloudinary unsigned config (client-side upload)
+  const CLOUDINARY_CLOUD = 'darmz4wsz'; // user value
+  const CLOUDINARY_UPLOAD_PRESET = 'emotional_preset'; // user value
+  const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/upload`;
 
-        <div class="modal-body">
+  // app state
+  let shopId = "SHOP001"; // default fixed
+  document.getElementById('shop-label').textContent = shopId;
+  let allItems = []; // array of item objects
+  let cart = JSON.parse(localStorage.getItem('dukaan_cart')||'[]');
 
-          <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input id="cust-name" class="form-control" placeholder="Your Name">
-          </div>
+  // small helpers
+  function setStatus(msg){ console.log(msg); }
+  function safeImage(u){ return u ? u : 'https://via.placeholder.com/300x200?text=No+Image'; }
+  function saveCartToStorage(){ localStorage.setItem('dukaan_cart', JSON.stringify(cart)); }
 
-          <div class="mb-3">
-            <label class="form-label">Phone</label>
-            <input id="cust-phone" class="form-control" placeholder="10-digit number">
-          </div>
+  // UI updater for cart fab
+  function updateCartFab(){
+    let total = 0, count = 0;
+    cart.forEach(ci=>{
+      const it = allItems.find(x=>x.id===ci.id);
+      if(it){
+        const price = (it.offerPrice!==undefined && it.offerPrice!==null) ? it.offerPrice : (it.price||0);
+        total += price * (ci.qty||1);
+        count += (ci.qty||1);
+      }
+    });
+    document.getElementById('cartTotal').innerText = total;
+    document.getElementById('cartCount').innerText = count;
+  }
+  updateCartFab();
+  </script>
 
-          <div class="mb-3">
-            <label class="form-label">Delivery Address</label>
-            <textarea id="cust-address" class="form-control" rows="2" placeholder="Full Address"></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Payment Method</label>
-            <select id="payment-method" class="form-select">
-              <option value="COD">Cash on Delivery</option>
-              <option value="UPI">UPI</option>
-            </select>
-          </div>
-
-          <div id="upi-info" class="d-none">
-            <label class="form-label">Transaction ID (optional)</label>
-            <input id="txn-id" class="form-control" placeholder="UPI Ref No / UTR">
-          </div>
-
-          <hr>
-
-          <div class="d-flex justify-content-between">
-            <strong>Total Payable:</strong>
-            <strong>₹<span id="checkout-total">0</span></strong>
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary" id="place-order-btn">Place Order</button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- SUCCESS MODAL -->
-  <div class="modal fade" id="successModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content text-center p-4">
-        <h3 class="text-success">🎉 Order Placed!</h3>
-        <p>Thank you for shopping with us.</p>
-        <button class="btn btn-primary mt-2" data-bs-dismiss="modal">OK</button>
-      </div>
-    </div>
-  </div>
-  <!-- Firebase Scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```0
+<!-- PART-2: Inventory listener, render & filters -->
 <script>
-// ===========================
-// FIREBASE CONFIG
-// ===========================
-  function getSafeImage(url) {
-  if (!url) return "https://via.placeholder.com/150?text=No+Image";
-  return url;
-  }
-const firebaseConfig = {
-  apiKey: "AIzaSyAomDsqeLOrXvnudqUsudnZWOphuqM0bvY",
-  authDomain: "shopkeeper-99756.firebaseapp.com",
-  projectId: "shopkeeper-99756",
-  storageBucket: "shopkeeper-99756.firebasestorage.app",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+/* ===== PART-2 =====
+   Inventory listener, renderItems, filters, simple addToCart & cart render
+*/
 
-
-// ===========================
-// GLOBALS
-// ===========================
-let shopId = "SHOP001";  // default shop
-document.getElementById("shop-id-label").textContent = shopId;
-let allItems = [];
-let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-
-// ===========================
-// LOAD ITEMS
-// ===========================
-async function loadItems() {
-  const snap = await db.collection("shops").doc(shopId).collection("items").orderBy("name").get();
-  allItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  renderItems(allItems);
-  populateCategories(allItems);
+// start live listener for shop items
+function startInventoryListener(){
+  if(!shopId) { setStatus('No shopId set'); return; }
+  setStatus('Listening for inventory...');
+  db.collection('shops').doc(shopId).collection('items').orderBy('name')
+    .onSnapshot(snapshot => {
+      allItems = [];
+      const cats = new Set();
+      snapshot.forEach(doc => {
+        const d = doc.data() || {};
+        const item = Object.assign({}, d, { id: doc.id });
+        allItems.push(item);
+        if(item.category) cats.add(item.category);
+      });
+      populateCategories(Array.from(cats).sort());
+      renderItems(allItems);
+      updateCartFab();
+      setStatus(`Loaded ${allItems.length} items`);
+    }, err => {
+      console.error('Inventory listener error', err);
+      setStatus('Error loading inventory: ' + err.message);
+    });
 }
-loadItems();
 
+// render items grid
+function renderItems(list){
+  const container = document.getElementById('items-container');
+  if(!container) return;
+  // apply current filters/search
+  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+  const selectedCat = document.getElementById('categoryFilter')?.value || '';
+  const filtered = list.filter(it=>{
+    if(selectedCat && (it.category||'') !== selectedCat) return false;
+    if(!q) return true;
+    return (it.name||'').toLowerCase().includes(q) || (it.category||'').toLowerCase().includes(q);
+  });
 
-// ===========================
-// RENDER ITEMS
-// ===========================
-function renderItems(list) {
-  // container id jahan items dikhne chahiye
-  const box = document.getElementById('items-list');
-  if (!box) {
-    console.warn('renderItems: #items-list element not found.');
+  let html = '';
+  filtered.forEach(it=>{
+    const image = safeImage(it.imageUrl);
+    const price = (it.offerPrice !== undefined && it.offerPrice !== null) ? it.offerPrice : (it.price || 0);
+    const discount = it.discountPercent || 0;
+    const stock = (typeof it.stock === 'number') ? it.stock : (it.stock || 0);
+    const unit = it.unit || '';
+    html += `
+      <div class="item-card" data-id="${it.id}">
+        <div style="width:100%;max-height:120px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+          <img class="item-image" src="${image}" alt="${(it.name||'item').replace(/"/g,'')}" />
+        </div>
+        <div class="item-name" title="${(it.name||'').replace(/"/g,'')}">${it.name || ''}</div>
+        <div class="item-price">₹${price}</div>
+        <div class="item-meta">${stock ? 'Stock: '+stock+' '+unit : ''}</div>
+        <button class="btn btn-primary btn-sm btn-add" onclick="addToCart('${it.id}')">Add to Cart</button>
+      </div>
+    `;
+  });
+
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="p-4 text-center w-100">कोई आइटम नहीं मिला।</div>`;
+  } else {
+    container.innerHTML = html;
+  }
+}
+
+// populate category dropdown
+function populateCategories(catList){
+  const sel = document.getElementById('categoryFilter');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">All Categories</option>` + catList.map(c=>`<option ${c===current?'selected':''} value="${c}">${c}</option>`).join('');
+}
+
+// basic filtering helper called on input/change
+function applyFilters(){
+  renderItems(allItems);
+}
+
+// ===== Simple Cart functions (minimal, will be expanded in Part-3) =====
+
+// add item to cart (simple increment)
+function addToCart(id){
+  const idx = cart.findIndex(c=>c.id===id);
+  if(idx === -1) cart.push({ id, qty: 1 });
+  else cart[idx].qty = (cart[idx].qty || 0) + 1;
+  saveCartToStorage();
+  updateCartFab();
+  // small visual feedback
+  const btn = document.querySelector(`.item-card[data-id="${id}"] .btn-add`);
+  if(btn){
+    btn.classList.add('btn-success');
+    setTimeout(()=>{ btn.classList.remove('btn-success'); }, 700);
+  }
+}
+
+// render cart modal body
+function renderCart(){
+  const body = document.getElementById('cartBody');
+  if(!body) return;
+  if(!cart || cart.length===0){
+    body.innerHTML = `<div class="text-center p-3">Your cart is empty.</div>`;
+    document.getElementById('finalTotal').innerText = 0;
     return;
   }
-
-  // clear previous content (only the items container)
-  box.innerHTML = '';
-
-  // if empty
-  if (!Array.isArray(list) || list.length === 0) {
-    box.innerHTML = '<div class="text-muted p-3">No items found.</div>';
-    return;
-  }
-
-  // build html safely (small card for each item)
-  const html = list.map(item => {
-    // safe fallbacks
-    const name = item.name || '';
-    const price = (typeof item.price !== 'undefined' && item.price !== null) ? item.price : '';
-    const stock = (typeof item.stock !== 'undefined' && item.stock !== null) ? item.stock : '';
-    const unit = item.unit || '';
-    const category = item.category || '';
-    const image = item.imageUrl || 'https://via.placeholder.com/80?text=img';
-
-    return `
-      <div class="item-card card d-inline-block m-2 shadow-sm" style="width:170px;">
-        <div class="card-body p-2 text-center">
-          <img src="${image}" class="item-image mb-2" alt="img" />
-          <div class="small text-truncate" title="${name}">${name}</div>
-          <div class="small text-muted">₹${price}</div>
-          <div class="small">Stock: ${stock} ${unit}</div>
-          <div class="small text-muted">${category}</div>
-          <button class="btn btn-sm btn-primary btn-addtocart mt-2" onclick="addToCart('${item.id || ''}')">Add to Cart</button>
+  let total = 0;
+  let html = `<div class="list-group">`;
+  cart.forEach(ci=>{
+    const it = allItems.find(x=>x.id===ci.id) || {};
+    const name = it.name || 'Item';
+    const price = (it.offerPrice!==undefined && it.offerPrice!==null) ? it.offerPrice : (it.price || 0);
+    const line = price * (ci.qty || 1);
+    total += line;
+    html += `
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div style="min-width:120px">
+          <div class="fw-semibold">${name}</div>
+          <div class="text-muted small">₹${price} × ${ci.qty}</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${ci.id}', -1)">-</button>
+          <div class="px-2">${ci.qty}</div>
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${ci.id}', 1)">+</button>
         </div>
       </div>
     `;
-  }).join('');
-
-  box.innerHTML = html;
-}
-
-
-// ===========================
-// CATEGORY FILTER
-// ===========================
-function populateCategories(items) {
-  const cats = [...new Set(items.map(i => i.category).filter(Boolean))];
-  const sel = document.getElementById("category-filter");
-  cats.forEach(c => {
-    const op = document.createElement("option");
-    op.value = c;
-    op.textContent = c;
-    sel.appendChild(op);
   });
+  html += `</div>`;
+  body.innerHTML = html;
+  document.getElementById('finalTotal').innerText = total;
 }
 
-document.getElementById("category-filter").addEventListener("change", e => {
-  const cat = e.target.value;
-  if (!cat) renderItems(allItems);
-  else renderItems(allItems.filter(i => i.category === cat));
-});
-
-
-// ===========================
-// SEARCH FILTER
-// ===========================
-document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  renderItems(allItems.filter(i => i.name.toLowerCase().includes(q)));
-});
-
-
-// ===========================
-// CART SYSTEM
-// ===========================
-function addToCart(id) {
-  const item = allItems.find(i => i.id === id);
-  if (!item) return;
-
-  const exists = cart.find(c => c.id === id);
-  if (exists) exists.qty++;
-  else cart.push({ id, name: item.name, price: item.offerPrice || item.price, qty: 1 });
-
-  saveCart();
+// change qty in cart
+function changeQty(id, delta){
+  const idx = cart.findIndex(c=>c.id===id);
+  if(idx === -1) return;
+  cart[idx].qty = (cart[idx].qty || 0) + delta;
+  if(cart[idx].qty <= 0) cart.splice(idx,1);
+  saveCartToStorage();
+  renderCart();
+  updateCartFab();
 }
 
-function saveCart() {
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCartUI();
+// open cart modal
+function openCart(){
+  renderCart();
+  const el = document.getElementById('cartModal');
+  const modal = new bootstrap.Modal(el);
+  modal.show();
 }
 
-function updateCartUI() {
-  let total = 0, count = 0;
-  cart.forEach(c => {
-    total += c.price * c.qty;
-    count += c.qty;
-  });
-  document.getElementById("cart-total").textContent = total;
-  document.getElementById("cart-total-2").textContent = total;
-  document.getElementById("checkout-total").textContent = total;
-  document.getElementById("cart-count").textContent = count;
-}
-updateCartUI();
+// Start listening immediately
+startInventoryListener();
+</script>
+```0
+<!-- PART-3: Cloudinary upload + Add/Edit item support (customer side safe) -->
+<script>
+/* ===== PART-3 =====
+   - Cloudinary image upload (safe unsigned)
+   - loadItemImage() for preview
+   - optional: future item detail modal (stub)
+*/
 
-
-// ===========================
-// OPEN CART
-// ===========================
-document.getElementById("cart-button").addEventListener("click", () => {
-  renderCartItems();
-  new bootstrap.Modal(document.getElementById("cartModal")).show();
-});
-
-function renderCartItems() {
-  const box = document.getElementById("cart-items");
-  box.innerHTML = cart.map(c => `
-    <div class="d-flex justify-content-between align-items-center border-bottom p-2">
-      <div>
-        <strong>${c.name}</strong><br>
-        <small>₹${c.price} × ${c.qty}</small>
-      </div>
-
-      <div>
-        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', -1)">-</button>
-${c.qty}
-<button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', 1)">+</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-function changeQty(id, dir) {
-  const item = cart.find(c => c.id === id);
-  if (!item) return;
-
-  item.qty += dir;
-  if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
-
-  saveCart();
-  renderCartItems();
-}
-      </script>
-      <script>
-// ===========================
-// CHECKOUT — Show modal
-// ===========================
-document.getElementById("checkout-btn").addEventListener("click", () => {
-  new bootstrap.Modal(document.getElementById("checkoutModal")).show();
-});
-
-// Payment method toggle
-document.getElementById("payment-method").addEventListener("change", e => {
-  if (e.target.value === "UPI") {
-    document.getElementById("upi-info").classList.remove("d-none");
-  } else {
-    document.getElementById("upi-info").classList.add("d-none");
+// ====== Upload image to Cloudinary ======
+async function uploadToCloudinary(file){
+  if(!file){
+    console.warn("No file selected for upload.");
+    return null;
   }
-});
+  if(!CLOUDINARY_CLOUD || !CLOUDINARY_UPLOAD_PRESET){
+    console.warn("Cloudinary config missing.");
+    return null;
+  }
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  try{
+    const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+    if(data.secure_url) return data.secure_url;
+    return null;
+  }catch(e){
+    console.error("Cloudinary upload error", e);
+    return null;
+  }
+}
 
+// ====== PREVIEW SELECTED IMAGE (optional UI use) ======
+function loadItemImage(input, targetId){
+  const file = input.files ? input.files[0] : null;
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = document.getElementById(targetId);
+    if(img) img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-// ===========================
-// PLACE ORDER → FIRESTORE
-// ===========================
-document.getElementById("place-order-btn").addEventListener("click", async () => {
-  const name = document.getElementById("cust-name").value.trim();
-  const phone = document.getElementById("cust-phone").value.trim();
-  const address = document.getElementById("cust-address").value.trim();
-  const payMethod = document.getElementById("payment-method").value;
-  const txnId = document.getElementById("txn-id").value.trim();
+// ====== OPTIONAL: Item detail modal (stub) ======
+function openItemDetail(id){
+  const it = allItems.find(x=>x.id===id);
+  if(!it) return;
+  const img = safeImage(it.imageUrl);
+  const modalHtml = `
+    <div class="modal fade" id="itemDetailModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>${it.name}</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img src="${img}" style="width:100%;max-height:240px;object-fit:contain">
+            <div class="mt-3 fw-bold fs-5">₹${(it.offerPrice ?? it.price)}</div>
+            <div class="text-muted small">${it.category || ''}</div>
+            <div class="text-muted small">Stock: ${it.stock || ''} ${it.unit||''}</div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary w-100" onclick="addToCart('${it.id}')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
   
-  if (!name || !phone || !address) {
-    alert("Please fill all details.");
-    return;
+  // remove old if exists
+  const old = document.getElementById("itemDetailModal");
+  if(old) old.remove();
+
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+  new bootstrap.Modal(document.getElementById("itemDetailModal")).show();
+}
+
+/* ===== END PART-3 ===== */
+</script>
+<!-- PART-4: Orders, Coupons, Notifications (stubs) + final glue -->
+<script>
+/* ===== PART-4 =====
+   - placeOrder() → writes order to Firestore under shops/{shopId}/orders
+   - createCoupon(), validateCoupon() → simple coupon flow (per-shop)
+   - listenShopOrders() → shopkeeper order listener (for dashboard)
+   - sendPushNotification() → placeholder to call your server/cloud-function for FCM
+   - minimal validations + UI hooks
+*/
+
+// ====== HELPERS ======
+function nowTs(){ return firebase.firestore.FieldValue.serverTimestamp(); }
+
+// ====== COUPON FUNCTIONS ======
+// Create a coupon for current shop (admin/shopkeeper use)
+async function createCoupon(code, amountOrPercent, type='FLAT', expiresAt=null, usageLimit=null){
+  // type: 'FLAT' or 'PERCENT'
+  const doc = {
+    code: (code||'').toUpperCase(),
+    type,
+    value: amountOrPercent,
+    createdAt: nowTs(),
+    expiresAt: expiresAt ? firebase.firestore.Timestamp.fromDate(new Date(expiresAt)) : null,
+    usageLimit: usageLimit || null,
+    usedCount: 0,
+    active: true
+  };
+  const ref = db.collection('shops').doc(shopId).collection('coupons').doc(doc.code);
+  await ref.set(doc);
+  return { ok:true, id: doc.code };
+}
+
+// Validate a coupon code for a given amount
+async function validateCoupon(code, amount){
+  if(!code) return { valid:false, reason:'no-code' };
+  const docRef = db.collection('shops').doc(shopId).collection('coupons').doc(code.toUpperCase());
+  const snap = await docRef.get();
+  if(!snap.exists) return { valid:false, reason:'not-found' };
+  const c = snap.data();
+  if(!c.active) return { valid:false, reason:'inactive' };
+  if(c.expiresAt && firebase.firestore.Timestamp.now().toMillis() > c.expiresAt.toMillis()) return { valid:false, reason:'expired' };
+  if(c.usageLimit && c.usedCount >= c.usageLimit) return { valid:false, reason:'limit-reached' };
+
+  // compute discount
+  let discount = 0;
+  if(c.type === 'FLAT') discount = Number(c.value) || 0;
+  else if(c.type === 'PERCENT') discount = Math.round((Number(c.value||0) / 100) * amount);
+
+  return { valid:true, discount, coupon: c };
+}
+
+// Apply coupon (atomically increment usedCount when order placed) → this function just validates client-side.
+// Final increment is done in transaction inside placeOrder.
+async function applyCoupon(code, amount){
+  return await validateCoupon(code, amount);
+}
+
+// ====== PLACE ORDER ======
+/*
+ orderData expected shape (from checkout):
+ {
+   customerName, phone, address,
+   items: [{ id, name, price, qty }],
+   amount: totalAmountBeforeDiscount,
+   paymentMethod: 'COD' | 'UPI',
+   txnId: optional,
+   couponCode: optional
+ }
+*/
+async function placeOrder(orderData){
+  if(!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) throw new Error('empty-cart');
+  const shopOrdersRef = db.collection('shops').doc(shopId).collection('orders');
+
+  // compute final totals & coupon
+  let subtotal = Number(orderData.amount || 0);
+  let couponDiscount = 0;
+  const couponCode = (orderData.couponCode || '').toUpperCase();
+
+  if(couponCode){
+    const res = await validateCoupon(couponCode, subtotal);
+    if(!res.valid) throw new Error('coupon-invalid:' + (res.reason || ''));
+    couponDiscount = res.discount || 0;
   }
 
-  if (cart.length === 0) {
-    alert("Cart is empty.");
-    return;
-  }
+  const finalAmount = Math.max(0, subtotal - couponDiscount);
 
-  // Calculate total
-  let total = 0;
-  cart.forEach(c => total += c.qty * c.price);
-
-  // Prepare order data
-  const order = {
-    customerName: name,
-    phone,
-    address,
-    items: cart,
-    amount: total,
-    paymentMethod: payMethod,
-    txnId: txnId || null,
-    status: "new",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  // build order doc
+  const doc = {
+    customerName: orderData.customerName || '',
+    phone: orderData.phone || '',
+    address: orderData.address || '',
+    items: orderData.items,
+    subtotal,
+    couponCode: couponCode || null,
+    couponDiscount,
+    amount: finalAmount,
+    paymentMethod: orderData.paymentMethod || 'COD',
+    txnId: orderData.txnId || null,
+    status: 'new', // new -> accepted -> packed -> ready -> out-for-delivery -> delivered
+    createdAt: nowTs(),
+    updatedAt: nowTs()
   };
 
-  try {
-    await db.collection("shops")
-      .doc(shopId)
-      .collection("orders")
-      .add(order);
+  // Use transaction if coupon needs usedCount increment
+  if(couponCode){
+    const couponRef = db.collection('shops').doc(shopId).collection('coupons').doc(couponCode);
+    await db.runTransaction(async tx => {
+      const cSnap = await tx.get(couponRef);
+      if(!cSnap.exists) throw new Error('coupon-missing');
+      const c = cSnap.data();
+      // re-check limits
+      if(!c.active) throw new Error('coupon-inactive');
+      if(c.expiresAt && firebase.firestore.Timestamp.now().toMillis() > c.expiresAt.toMillis()) throw new Error('coupon-expired');
+      if(c.usageLimit && c.usedCount >= c.usageLimit) throw new Error('coupon-limit');
 
-    // Clear cart
-    cart = [];
-    saveCart();
-
-    // Close checkout modal
-    bootstrap.Modal.getInstance(document.getElementById("checkoutModal")).hide();
-
-    // Show success modal
-    new bootstrap.Modal(document.getElementById("successModal")).show();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error placing order: " + err.message);
+      const orderRef = shopOrdersRef.doc(); // create new doc
+      tx.set(orderRef, doc);
+      tx.update(couponRef, { usedCount: (c.usedCount || 0) + 1 });
+      return orderRef.id;
+    });
+    // after transaction, return success
+    return { ok:true };
+  } else {
+    // simple add
+    await shopOrdersRef.add(doc);
+    return { ok:true };
   }
-});
-</script>
+}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+// ====== SHOPKEEPER: listen for new orders (example) ======
+let ordersUnsub = null;
+function listenShopOrders(callback){
+  if(ordersUnsub) ordersUnsub();
+  ordersUnsub = db.collection('shops').doc(shopId).collection('orders')
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(snapshot => {
+      const orders = [];
+      snapshot.forEach(d => orders.push({ id:d.id, ...d.data() }));
+      if(typeof callback === 'function') callback(orders);
+    }, err => { console.error('orders listen error', err); });
+}
+
+// ====== ORDER STATUS UPDATE (shop UI) ======
+async function updateOrderStatus(orderId, newStatus){
+  const ref = db.collection('shops').doc(shopId).collection('orders').doc(orderId);
+  await ref.update({ status: newStatus, updatedAt: nowTs() });
+  // optional: notify customer via cloud function / FCM
+  // sendPushNotification(...);
+}
+
+// ====== NOTIFICATIONS (placeholder) ======
+// We cannot send FCM directly from client securely. Create a Cloud Function / server endpoint that accepts:
+// { token, title, body, data } and uses server key to send FCM.
+// Here we provide a simple client-side stub to call that endpoint.
+
+async function sendPushNotificationServer(payload){
+  // payload example: { token: 'fcmToken', title:'New Order', body:'You have new order', data:{ orderId:'...' } }
+  // Replace YOUR_CLOUD_FUNCTION_URL with your own server endpoint
+  const URL = 'https://YOUR_CLOUD_FUNCTION_OR_SERVER/sendNotification'; // <-- update before use
+  try{
+    const res = await fetch(URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }catch(e){
+    console.error('notify error', e);
+    return { ok:false, error: e.message };
+  }
+}
+
+// ====== QUICK UI HOOKS (example usage) ======
+// Hook: place order from checkout form
+async function placeOrderFromCheckout(form){
+  // form: {name,phone,address,paymentMethod,txnId,couponCode}
+  // build items array from cart (client local)
+  const items = cart.map(ci => {
+    const it = allItems.find(a=>a.id===ci.id) || {};
+    const price = (it.offerPrice!==undefined && it.offerPrice!==null) ? it.offerPrice : it.price || 0;
+    return { id: ci.id, name: it.name || '', price, qty: ci.qty || 1 };
+  });
+  const subtotal = items.reduce((s,i)=>s + (i.price * i.qty), 0);
+  const orderData = {
+    customerName: form.name,
+    phone: form.phone,
+    address: form.address,
+    items,
+    amount: subtotal,
+    paymentMethod: form.paymentMethod || 'COD',
+    txnId: form.txnId || null,
+    couponCode: form.couponCode || null
+  };
+
+  try{
+    const r = await placeOrder(orderData);
+    if(r.ok){
+      // clear cart
+      cart = [];
+      saveCartToStorage();
+      updateCartFab();
+      // optional: show success UI
+      alert('Order placed successfully');
+      // optionally notify shopkeeper via server
+      // sendPushNotificationServer({ token: 'shopkeeper_fcm_token', title:'New Order', body:'New order received', data:{}} );
+    } else {
+      alert('Order failed: ' + (r.error || 'unknown'));
+    }
+  }catch(err){
+    alert('Order error: ' + (err.message || err));
+  }
+}
+
+/* ===== END PART-4 ===== */
+</script>
+```0
