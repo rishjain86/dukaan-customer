@@ -242,6 +242,10 @@
 // ===========================
 // FIREBASE CONFIG
 // ===========================
+  function getSafeImage(url) {
+  if (!url) return "https://via.placeholder.com/150?text=No+Image";
+  return url;
+  }
 const firebaseConfig = {
   apiKey: "AIzaSyAomDsqeLOrXvnudqUsudnZWOphuqM0bvY",
   authDomain: "shopkeeper-99756.firebaseapp.com",
@@ -291,8 +295,7 @@ function renderItems(list) {
     <div class="col-12">
       <div class="item-card">
 
-        <img src="${item.imageUrl || 'https://via.placeholder.com/80?text=No+Img'}"
-             class="item-img" />
+        <img src="${getSafeImage(item.imageUrl)}" class="item-img" />
 
         <div style="flex:1;">
           <div><strong>${item.name}</strong></div>
