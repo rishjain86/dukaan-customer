@@ -3,249 +3,343 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dukaan Customer App</title>
-
+  <title>Dukaan — Customer (Final)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-
   <style>
     :root{
-      --accent:#6c5ce7;
-      --accent2:#a280ff;
-      --bg:#f5f6fb;
+      --teal-1:#0ea5a4;
+      --teal-2:#059669;
+      --bg:#f3faf7;
+      --card:#ffffff;
     }
-    body{background:var(--bg);font-family:Inter,Roboto;}
-    .top{background:var(--accent);color:#fff;padding:12px 16px;font-size:18px;font-weight:600;}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;margin-top:20px;}
-    .card-box{background:#fff;padding:12px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.05);}
-    .thumb{width:100%;height:130px;object-fit:cover;border-radius:10px;background:#eee;}
-    .price{color:var(--accent);font-weight:700;margin-top:3px;}
-    .old{text-decoration:line-through;color:#777;font-size:13px;margin-left:4px;}
-    .btn-add{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:6px 14px;margin-top:10px;}
-    .floating{position:fixed;bottom:18px;right:18px;background:var(--accent);color:#fff;padding:10px 18px;border-radius:30px;box-shadow:0 4px 14px rgba(0,0,0,0.2);cursor:pointer;font-weight:600;z-index:20;}
-    .badge-cart{background:#ff4d6d;padding:4px 8px;border-radius:50%;font-size:12px;margin-left:6px;}
+    body{background:var(--bg);font-family:Inter,Roboto,system-ui,-apple-system;}
+    .app-top{background:linear-gradient(90deg,var(--teal-1),var(--teal-2));color:#fff;padding:12px 16px;position:sticky;top:0;z-index:50;}
+    .brand{font-weight:700;display:flex;align-items:center;gap:10px;}
+    .searchbar{background:#fff;border-radius:10px;padding:6px 10px;border:1px solid rgba(0,0,0,0.06);}
+    .container-main{max-width:1100px;margin:14px auto;padding:0 12px;}
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+    .card-prod{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 8px 20px rgba(6,95,70,0.04);display:flex;flex-direction:column;height:100%}
+    .img-prod{height:150px;border-radius:10px;object-fit:cover;background:#eefaf6;width:100%}
+    .prod-title{font-weight:600;margin-top:8px}
+    .prod-cat{font-size:13px;color:#4b5563}
+    .price-row{margin-top:8px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+    .price{color:var(--teal-2);font-weight:700}
+    .old{color:#9ca3af;text-decoration:line-through;font-size:13px}
+    .card-actions{display:flex;justify-content:center;margin-top:10px}
+    .btn-add{background:var(--teal-2);color:#fff;border:none;padding:8px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(5,150,105,0.12)}
+    .floating-cart{position:fixed;right:18px;bottom:18px;background:linear-gradient(90deg,var(--teal-1),var(--teal-2));color:#fff;padding:10px 14px;border-radius:30px;z-index:60;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(6,95,70,0.18)}
+    .badge-count{background:#fff;color:var(--teal-2);padding:4px 8px;border-radius:20px;font-weight:700}
+    /* bottom sheet */
+    .bsheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 40px rgba(6,95,70,0.12);transform:translateY(110%);transition:transform .28s ease-in-out;z-index:70;max-height:85vh;overflow:auto}
+    .bsheet.open{transform:translateY(0%)}
+    .bs-handle{width:60px;height:6px;background:#e6f3ef;border-radius:99px;margin:8px auto;display:block}
+    .bs-head{padding:10px 16px;border-bottom:1px solid #f1f5f4;display:flex;justify-content:space-between;align-items:center}
+    .addr-item{padding:10px;border-radius:10px;border:1px solid #eef6f4;margin-bottom:8px}
+    .center{text-align:center}
+    @media(max-width:480px){ .img-prod{height:120px} }
   </style>
 </head>
-
 <body>
-
-<div class="top">🛒 Dukaan — Order Now</div>
-
-<div class="container py-3">
-  <select id="category" class="form-select mb-3">
-    <option value="">All Categories</option>
-  </select>
-
-  <input id="search" class="form-control mb-3" placeholder="Search items..."/>
-
-  <div id="grid" class="grid"></div>
-
-  <div id="empty" style="text-align:center;margin-top:40px;color:#777;display:none;">
-    No items found.
-  </div>
-</div>
-
-<div class="floating" onclick="openCart()">Cart <span id="cartCount" class="badge-cart">0</span></div>
-
-<!-- Cart Modal -->
-<div class="modal fade" id="cartModal">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Your Cart</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="app-top">
+    <div class="container-main d-flex align-items-center justify-content-between">
+      <div class="brand"><span style="font-size:20px">🛒</span><div>Dukaan — Customer</div></div>
+      <div style="flex:1;margin:0 16px">
+        <input id="search" class="searchbar form-control" placeholder="Search items or category..."/>
       </div>
-      <div class="modal-body" id="cartBody"></div>
-      <div class="modal-footer">
-        <div class="me-auto fw-bold">Total: <span id="cartTotal">₹0</span></div>
-        <button class="btn btn-success" onclick="checkout()">Place Order</button>
+      <div id="userDisplay" class="text-white small">Guest</div>
+    </div>
+  </div>
+
+  <div class="container-main">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Popular items</h5>
+      <select id="categoryFilter" class="form-select form-select-sm" style="max-width:220px">
+        <option value="">All Categories</option>
+      </select>
+    </div>
+
+    <div id="grid" class="product-grid"></div>
+    <div id="empty" class="center text-muted" style="display:none;margin-top:30px">No items found</div>
+  </div>
+
+  <button id="viewCartBtn" class="floating-cart" style="display:none">
+    <div>View Cart</div> <div class="badge-count" id="cartCount">0</div>
+  </button>
+
+  <!-- Bottom sheet checkout -->
+  <div id="bsheet" class="bsheet" aria-hidden="true">
+    <span class="bs-handle"></span>
+    <div class="bs-head">
+      <strong>Checkout</strong>
+      <button id="closeB" class="btn btn-sm btn-light">Close</button>
+    </div>
+    <div style="padding:12px" id="bsheetBody">
+      <div class="mb-2">
+        <strong>Delivery address</strong>
+        <div id="addresses" style="margin-top:8px"></div>
+        <button id="manageAddrBtn" class="btn btn-sm btn-outline-secondary mt-2">Manage Addresses</button>
+      </div>
+      <div class="mb-2">
+        <strong>Contact</strong>
+        <input id="checkoutName" class="form-control mb-2" placeholder="Full name"/>
+        <input id="checkoutPhone" class="form-control mb-2" placeholder="Phone number"/>
+      </div>
+      <div class="mb-2">
+        <strong>Order</strong>
+        <div id="orderList"></div>
+        <div class="d-flex justify-content-between mt-3"><strong>Total</strong><strong id="orderTotal">₹0</strong></div>
+      </div>
+      <div class="mt-3">
+        <button id="placeOrderBtn" class="btn btn-success w-100">Place Order</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Success Modal -->
-<div class="modal fade" id="okModal">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3 text-center">
-      <h5 class="text-success fw-bold">Order Placed Successfully!</h5>
-      <p class="small">Thanks for ordering.</p>
-      <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+  <!-- Address manager modal -->
+  <div class="modal fade" id="addrModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header"><h5>Saved addresses</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div id="addrList"></div>
+          <hr/>
+          <input id="addrTitle" class="form-control mb-2" placeholder="Title (Home, Office)"/>
+          <textarea id="addrDetails" class="form-control mb-2" placeholder="Address details"></textarea>
+          <input id="addrPhone" class="form-control mb-2" placeholder="Phone"/>
+          <button id="saveAddr" class="btn btn-primary">Save Address</button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAomDsqeLOrXvnudqUsudnZWOphuqM0bvY",
-  authDomain: "shopkeeper-99756.firebaseapp.com",
-  projectId: "shopkeeper-99756",
-  storageBucket: "shopkeeper-99756.appspot.com"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-let shopId = "SHOP001";
-let all = [];
-let cart = JSON.parse(localStorage.getItem("cust_cart") || "[]");
-
-function saveCart(){ localStorage.setItem("cust_cart",JSON.stringify(cart)); }
-function updateBadge(){ 
-  document.getElementById("cartCount").textContent = cart.reduce((a,b)=>a+b.qty,0); 
-}
-updateBadge();
-
-function fmt(n){ return "₹" + (Number(n)||0); }
-
-function loadItems(){
-  db.collection("shops").doc(shopId).collection("items").orderBy("name")
-    .onSnapshot(snap=>{
-      all = [];
-      let cats = new Set();
-      snap.forEach(d=>{
-        let x = d.data(); x.id=d.id;
-        all.push(x);
-        if(x.category) cats.add(x.category);
-      });
-      renderCats([...cats]);
-      renderItems();
-    });
-}
-
-function renderCats(cats){
-  let c = document.getElementById("category");
-  c.innerHTML = "<option value=''>All Categories</option>";
-  cats.forEach(k=>{
-    c.innerHTML += `<option>${k}</option>`;
-  });
-}
-
-function renderItems(){
-  let q = document.getElementById("search").value.toLowerCase();
-  let cat = document.getElementById("category").value;
-
-  let list = all.filter(it=>{
-    if(cat && it.category!==cat) return false;
-    if(q && !it.name.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  let g = document.getElementById("grid");
-  g.innerHTML = "";
-  if(list.length===0){
-    document.getElementById("empty").style.display="block";
-    return;
-  }
-  document.getElementById("empty").style.display="none";
-
-  list.forEach(it=>{
-    let price = it.offerPrice ?? it.price ?? 0;
-
-    g.innerHTML += `
-      <div class="card-box">
-        <img src="${it.imageUrl || 'https://via.placeholder.com/400x300'}" class="thumb"/>
-        <div class="fw-bold mt-2">${it.name}</div>
-        <div class="text-muted small">${it.category||""}</div>
-        <div class="price">${fmt(price)} ${
-          it.offerPrice && it.price ? `<span class='old'>${fmt(it.price)}</span>`:""
-        }</div>
-        <button class="btn-add" onclick="addToCart('${it.id}')">Add to Cart</button>
+  <!-- Signin modal (simple local auth) -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header"><h5>Sign in / Sign up</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <input id="authName" class="form-control mb-2" placeholder="Full name (for signup)"/>
+          <input id="authEmail" class="form-control mb-2" placeholder="Email"/>
+          <input id="authPhone" class="form-control mb-2" placeholder="Phone"/>
+          <input id="authPass" type="password" class="form-control mb-2" placeholder="Password"/>
+          <div class="d-flex gap-2">
+            <button id="btnSignup" class="btn btn-outline-primary">Create account</button>
+            <button id="btnSignin" class="btn btn-primary">Sign in</button>
+          </div>
+        </div>
       </div>
-    `;
-  });
-}
+    </div>
+  </div>
 
-function addToCart(id){
-  let it = all.find(x=>x.id===id);
-  if(!it) return;
-  let c = cart.find(x=>x.id===id);
-  if(c) c.qty++;
-  else cart.push({ id:id, name:it.name, price:(it.offerPrice ?? it.price ?? 0), qty:1 });
-  saveCart(); updateBadge();
-}
+  <!-- Firebase (compat) - optional -->
+  <script>
+    // placeholder; if you want Firebase enable, paste your config before the library loads
+    window.firebaseConfig = window.firebaseConfig || {};
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-function openCart(){
-  renderCart();
-  new bootstrap.Modal(document.getElementById("cartModal")).show();
-}
+  <script>
+  // App logic
+  // Data sources: prefer Firestore collection shops/SHOP001/items -> fallback to local list
+  const SHOP_ID = 'SHOP001';
+  let items = [];
+  let cart = JSON.parse(localStorage.getItem('duk_cart')||'[]');
+  let user = JSON.parse(localStorage.getItem('duk_user')||'null');
+  let addresses = JSON.parse(localStorage.getItem('duk_addr_' + (user?.email||'guest'))||'[]');
 
-function renderCart(){
-  let body = document.getElementById("cartBody");
-  if(cart.length===0){
-    body.innerHTML = "<p class='text-center'>Cart is empty</p>";
-    document.getElementById("cartTotal").textContent="₹0";
-    return;
+  // Initialize firebase if config provided
+  let db = null;
+  try{
+    if(window.firebaseConfig && Object.keys(window.firebaseConfig).length>0){
+      firebase.initializeApp(window.firebaseConfig);
+      db = firebase.firestore();
+    }
+  }catch(e){ console.warn('Firebase init error', e); db = null; }
+
+  function saveCart(){ localStorage.setItem('duk_cart', JSON.stringify(cart)); updateCartUI(); }
+  function updateCartUI(){
+    const count = cart.reduce((s,i)=>s+i.qty,0);
+    document.getElementById('cartCount').innerText = count;
+    document.getElementById('viewCartBtn').style.display = count>0 ? 'flex' : 'none';
   }
-  let t=0;
-  let html="<table class='table'>";
-  cart.forEach(ci=>{
-    let sub = ci.qty * ci.price;
-    t+=sub;
-    html+=`
-    <tr>
-      <td><b>${ci.name}</b></td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary" onclick="qty('${ci.id}',-1)">-</button>
-        <span class="mx-2">${ci.qty}</span>
-        <button class="btn btn-sm btn-outline-secondary" onclick="qty('${ci.id}',1)">+</button>
-      </td>
-      <td>${fmt(sub)}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="removeItem('${ci.id}')">X</button></td>
-    </tr>`;
-  });
-  html+="</table>";
-  body.innerHTML=html;
-  document.getElementById("cartTotal").textContent=fmt(t);
-}
+  updateCartUI();
 
-function qty(id,d){
-  let i=cart.findIndex(c=>c.id===id);
-  if(i==-1) return;
-  cart[i].qty+=d;
-  if(cart[i].qty<=0) cart.splice(i,1);
-  saveCart(); renderCart(); updateBadge();
-}
-function removeItem(id){ cart=cart.filter(c=>c.id!==id); saveCart(); renderCart(); updateBadge(); }
+  // fallback dataset
+  const FALLBACK = [
+    {id:'p1', name:'दूध 1L', price:60, mrp:70, category:'डेयरी', image:'https://via.placeholder.com/400x300?text=दूध'},
+    {id:'p2', name:'ब्रेड', price:35, mrp:40, category:'बेकरी', image:'https://via.placeholder.com/400x300?text=ब्रेड'},
+    {id:'p3', name:'चावल 1kg', price:120, mrp:150, category:'अनाज', image:'https://via.placeholder.com/400x300?text=चावल'},
+    {id:'p4', name:'सेब 1kg', price:140, mrp:160, category:'फल', image:'https://via.placeholder.com/400x300?text=सेब'}
+  ];
 
-function checkout(){
-  if(cart.length===0) return alert("Cart empty");
+  // load items either from Firestore or fallback
+  async function loadItems(){
+    if(db){
+      try{
+        const snap = await db.collection('shops').doc(SHOP_ID).collection('items').orderBy('name').get();
+        items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      }catch(e){ console.warn('fire read',e); items = FALLBACK; }
+    } else { items = FALLBACK; }
+    renderItems(items);
+    populateCategories();
+  }
 
-  let name = prompt("Name");
-  if(!name) return;
-  let phone = prompt("Phone");
-  if(!phone) return;
-  let addr = prompt("Address");
-  if(!addr) return;
+  function populateCategories(){
+    const cats = Array.from(new Set(items.map(i=>i.category).filter(Boolean)));
+    const sel = document.getElementById('categoryFilter');
+    sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+    sel.addEventListener('change', ()=>applyFilters());
+  }
 
-  let order = {
-    customer:{name,phone,address:addr},
-    items:cart,
-    total:cart.reduce((s,i)=>s+i.qty*i.price,0),
-    shopId:shopId,
-    status:"placed",
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  };
+  function applyFilters(){
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    const cat = document.getElementById('categoryFilter').value;
+    const filtered = items.filter(i=>(!cat||i.category===cat) && (!q || i.name.toLowerCase().includes(q) || (i.category||'').toLowerCase().includes(q)));
+    renderItems(filtered);
+  }
 
-  db.collection("shops").doc(shopId).collection("orders").add(order)
-    .then(()=>{
-      cart=[]; saveCart(); updateBadge();
-      new bootstrap.Modal(document.getElementById("cartModal")).hide();
-      new bootstrap.Modal(document.getElementById("okModal")).show();
-    })
-    .catch(e=>{
-      alert("Order error: "+e.message);
+  function renderItems(list){
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    if(!list || list.length===0){ document.getElementById('empty').style.display='block'; return; } else { document.getElementById('empty').style.display='none'; }
+    list.forEach(it=>{
+      const div = document.createElement('div');
+      div.className = 'card-prod';
+      div.innerHTML = `<div style="flex:1"><img src="${it.image||''}" class="img-prod"/><div class="prod-title">${it.name}</div><div class="prod-cat">${it.category||''}</div><div class="price-row"><div><span class="price">₹${it.price}</span> ${it.mrp?'<span class="old">₹'+it.mrp+'</span>':''}</div><div></div></div></div><div class="card-actions"><button class="btn-add" data-id="${it.id}">Add to cart</button></div>`;
+      grid.appendChild(div);
     });
-}
+    // attach listeners
+    document.querySelectorAll('.btn-add').forEach(b=>b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-id'); addToCart(id);
+    }));
+  }
 
-document.getElementById("search").addEventListener("input",renderItems);
-document.getElementById("category").addEventListener("change",renderItems);
+  function addToCart(id){
+    const it = items.find(x=>x.id===id); if(!it) return;
+    const ex = cart.find(c=>c.id===id);
+    if(ex) ex.qty++; else cart.push({id:it.id,name:it.name,price:it.price,qty:1});
+    saveCart();
+  }
 
-loadItems();
-</script>
+  function openBottomSheet(){
+    document.getElementById('bsheet').classList.add('open');
+    renderBottomSheet();
+  }
+  function closeBottomSheet(){ document.getElementById('bsheet').classList.remove('open'); }
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  document.getElementById('viewCartBtn').addEventListener('click', openBottomSheet);
+  document.getElementById('closeB').addEventListener('click', closeBottomSheet);
+
+  function renderBottomSheet(){
+    const list = document.getElementById('orderList'); list.innerHTML=''; let total=0;
+    cart.forEach(ci=>{ const sub=ci.qty*ci.price; total+=sub; const row = document.createElement('div'); row.className='d-flex justify-content-between align-items-center p-2'; row.innerHTML=`<div><b>${ci.name}</b><div class="text-muted small">x ${ci.qty}</div></div><div>₹${sub}</div>`; list.appendChild(row); });
+    document.getElementById('orderTotal').innerText = '₹'+total;
+    // addresses
+    renderAddresses();
+    // prefill contact
+    document.getElementById('checkoutName').value = user?.name || '';
+    document.getElementById('checkoutPhone').value = user?.phone || '';
+  }
+
+  // addresses
+  function renderAddresses(){
+    const wrap = document.getElementById('addresses'); wrap.innerHTML='';
+    addresses = JSON.parse(localStorage.getItem('duk_addr_' + (user?.email||'guest'))||'[]');
+    if(addresses.length===0){ wrap.innerHTML = '<div class="text-muted">No saved addresses</div>'; return; }
+    addresses.forEach((a,i)=>{
+      const el = document.createElement('div'); el.className='addr-item';
+      el.innerHTML = `<div><strong>${a.title}</strong></div><div class="text-muted small">${a.details}</div><div class="mt-1 d-flex justify-content-end gap-2"><button class="btn btn-sm btn-outline-primary" data-i="${i}" onclick="selectAddress(${i})">Select</button><button class="btn btn-sm btn-outline-danger" data-i="${i}" onclick="deleteAddress(${i})">Delete</button></div>`;
+      wrap.appendChild(el);
+    });
+  }
+  window.selectAddress = function(i){
+    const a = addresses[i]; if(!a) return; document.getElementById('checkoutName').value = a.name || ''; document.getElementById('checkoutPhone').value = a.phone || ''; document.getElementById('checkoutPhone').focus();
+  }
+  window.deleteAddress = function(i){ addresses.splice(i,1); localStorage.setItem('duk_addr_' + (user?.email||'guest'), JSON.stringify(addresses)); renderAddresses(); renderAddrList(); }
+
+  // address modal handlers
+  document.getElementById('manageAddrBtn').addEventListener('click', ()=>{ renderAddrList(); var myModal = new bootstrap.Modal(document.getElementById('addrModal')); myModal.show(); });
+  document.getElementById('saveAddr').addEventListener('click', ()=>{
+    const t=document.getElementById('addrTitle').value.trim(), d=document.getElementById('addrDetails').value.trim(), p=document.getElementById('addrPhone').value.trim();
+    if(!t||!d||!p){ alert('Complete fields'); return; }
+    addresses = JSON.parse(localStorage.getItem('duk_addr_' + (user?.email||'guest'))||'[]');
+    addresses.push({title:t,details:d,phone:p,name: user?.name||''});
+    localStorage.setItem('duk_addr_' + (user?.email||'guest'), JSON.stringify(addresses));
+    document.getElementById('addrTitle').value='';document.getElementById('addrDetails').value='';document.getElementById('addrPhone').value='';
+    renderAddrList(); alert('Saved');
+  });
+
+  function renderAddrList(){
+    const wrap = document.getElementById('addrList'); wrap.innerHTML='';
+    addresses = JSON.parse(localStorage.getItem('duk_addr_' + (user?.email||'guest'))||'[]');
+    if(addresses.length===0){ wrap.innerHTML = '<div class="text-muted">No saved addresses</div>'; return; }
+    addresses.forEach((a,i)=>{ const el=document.createElement('div'); el.className='p-2 mb-2 border rounded'; el.innerHTML=`<strong>${a.title}</strong><div class="small text-muted">${a.details}</div><div class="mt-1"><small>${a.phone}</small></div><div class="mt-2 text-end"><button class="btn btn-sm btn-outline-danger" onclick="deleteAddress(${i})">Delete</button></div>`; wrap.appendChild(el); });
+  }
+
+  // place order: try Firestore, else fallback to localStorage queue
+  async function placeOrder(){
+    if(cart.length===0){ alert('Cart empty'); return; }
+    const name = document.getElementById('checkoutName').value.trim(), phone = document.getElementById('checkoutPhone').value.trim();
+    if(!name || !phone){ alert('Name and phone required'); return; }
+    const addrIndex = 0; // using first saved or details in fields
+    const selectedAddr = (addresses[0] || {title:'Delivery',details:'',phone:phone});
+    const order = { shopId: SHOP_ID, user: user?.email || 'guest', name, phone, address:selectedAddr, items:cart, total: cart.reduce((s,i)=>s+i.qty*i.price,0), createdAt: new Date().toISOString() };
+    // try firestore
+    if(db){
+      try{
+        await db.collection('shops').doc(SHOP_ID).collection('orders').add(order);
+        cart = []; saveCart(); closeBottomSheet(); alert('Order placed successfully (server).'); return;
+      }catch(e){
+        console.warn('fire write failed', e);
+      }
+    }
+    // fallback: queue locally
+    const q = JSON.parse(localStorage.getItem('duk_order_queue')||'[]');
+    q.push(order); localStorage.setItem('duk_order_queue', JSON.stringify(q));
+    cart = []; saveCart(); closeBottomSheet(); alert('Order queued locally (no server write).');
+  }
+  document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+
+  // simple auth (localStorage)
+  document.getElementById('btnSignup').addEventListener('click', ()=>{
+    const name=document.getElementById('authName').value.trim(), email=document.getElementById('authEmail').value.trim(), phone=document.getElementById('authPhone').value.trim(), pass=document.getElementById('authPass').value;
+    if(!email||!pass){ alert('Email & password required'); return; }
+    const users = JSON.parse(localStorage.getItem('duk_users')||'[]');
+    if(users.find(u=>u.email===email)){ alert('Account exists'); return; }
+    users.push({name,email,phone,password:pass}); localStorage.setItem('duk_users', JSON.stringify(users)); alert('Account created'); signinLocal(email,pass);
+  });
+  document.getElementById('btnSignin').addEventListener('click', ()=>{
+    const email=document.getElementById('authEmail').value.trim(), pass=document.getElementById('authPass').value;
+    signinLocal(email,pass);
+  });
+  function signinLocal(email,pass){ const users=JSON.parse(localStorage.getItem('duk_users')||'[]'); const u=users.find(x=>x.email===email && x.password===pass); if(!u){ alert('Invalid'); return; } localStorage.setItem('duk_user', JSON.stringify(u)); user=u; document.getElementById('userDisplay').innerText = user.name || user.email; bootstrap.Modal.getInstance(document.getElementById('authModal'))?.hide(); }
+  // open auth modal on click of userDisplay
+  document.getElementById('userDisplay').addEventListener('click', ()=>{ new bootstrap.Modal(document.getElementById('authModal')).show(); });
+
+  // cart helpers
+  function saveCart(){ localStorage.setItem('duk_cart', JSON.stringify(cart)); updateCartUI(); }
+  function loadCart(){ cart = JSON.parse(localStorage.getItem('duk_cart')||'[]'); updateCartUI(); }
+  loadCart();
+
+  // utilities: render cart button visibility
+  document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('.btn-add')){} });
+
+  // initial load
+  loadItems();
+  document.getElementById('search').addEventListener('input', applyFilters);
+  document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+
+  // show cart button click
+  document.getElementById('viewCartBtn').addEventListener('click', openBottomSheet);
+  // allow clicking anywhere on floating to open
+  document.querySelectorAll('.floating-cart, #viewCartBtn').forEach(el=>el.addEventListener('click', openBottomSheet));
+
+  // small: render addr list when modal shown
+  var addrModalEl = document.getElementById('addrModal');
+  addrModalEl.addEventListener && addrModalEl.addEventListener('shown.bs.modal', function(){ renderAddrList(); });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
