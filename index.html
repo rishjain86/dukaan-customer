@@ -307,7 +307,11 @@ function renderItems(list) {
           </div>
         </div>
 
-        <button class="btn btn-primary btn-sm" onclick="addToCart('${item.id}')">Add</button>
+        <div class="d-flex justify-content-center mt-2">
+  <button class="btn btn-primary btn-sm px-3" onclick="addToCart('${item.id}')">
+    Add to Cart
+  </button>
+</div>
       </div>
     </div>
   `).join("");
