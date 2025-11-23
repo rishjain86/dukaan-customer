@@ -280,39 +280,48 @@ loadItems();
 // ===========================
 // RENDER ITEMS
 // ===========================
-function renderItems(list){
-  const box = document.getElementById("items-list");
-  const emptyBox = document.getElementById("empty-items");
-
-  if(list.length === 0){
-    emptyBox.classList.remove("d-none");
-    box.innerHTML = "";
+function renderItems(list) {
+  // container id jahan items dikhne chahiye
+  const box = document.getElementById('items-list');
+  if (!box) {
+    console.warn('renderItems: #items-list element not found.');
     return;
   }
 
-  emptyBox.classList.add("d-none");
+  // clear previous content (only the items container)
+  box.innerHTML = '';
 
-  box.innerHTML = list.map(item => `
-    <div class="col-6 col-md-4 col-lg-3 p-2">
-      <div class="item-card border rounded p-2 text-center">
+  // if empty
+  if (!Array.isArray(list) || list.length === 0) {
+    box.innerHTML = '<div class="text-muted p-3">No items found.</div>';
+    return;
+  }
 
-        <img src="${item.imageUrl || 'https://via.placeholder.com/120'}" 
-             class="item-image mb-2" 
-             alt="img">
+  // build html safely (small card for each item)
+  const html = list.map(item => {
+    // safe fallbacks
+    const name = item.name || '';
+    const price = (typeof item.price !== 'undefined' && item.price !== null) ? item.price : '';
+    const stock = (typeof item.stock !== 'undefined' && item.stock !== null) ? item.stock : '';
+    const unit = item.unit || '';
+    const category = item.category || '';
+    const image = item.imageUrl || 'https://via.placeholder.com/80?text=img';
 
-        <div class="fw-bold small">${item.name}</div>
-        <div class="text-muted small">₹${item.offerPrice || item.price}</div>
-
-        <div class="mt-2 d-flex justify-content-center">
-          <button class="btn btn-primary btn-sm px-3 btn-addtocart" 
-                  onclick="addToCart('${item.id}')">
-            Add to Cart
-          </button>
+    return `
+      <div class="item-card card d-inline-block m-2 shadow-sm" style="width:170px;">
+        <div class="card-body p-2 text-center">
+          <img src="${image}" class="item-image mb-2" alt="img" />
+          <div class="small text-truncate" title="${name}">${name}</div>
+          <div class="small text-muted">₹${price}</div>
+          <div class="small">Stock: ${stock} ${unit}</div>
+          <div class="small text-muted">${category}</div>
+          <button class="btn btn-sm btn-primary btn-addtocart mt-2" onclick="addToCart('${item.id || ''}')">Add to Cart</button>
         </div>
-
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join('');
+
+  box.innerHTML = html;
 }
 
 
