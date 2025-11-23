@@ -395,8 +395,9 @@ function renderCartItems() {
       </div>
 
       <div>
-        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', -1)">−</button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', +1)">+</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', -1)">-</button>
+${c.qty}
+<button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${c.id}', 1)">+</button>
       </div>
     </div>
   `).join("");
