@@ -1,266 +1,168 @@
 <!doctype html>
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dukaan — Customer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body{background:#f8f9fa;padding:8px;}
-    .product-card{width:160px;margin:8px;display:inline-block;vertical-align:top}
-    .prod-img{width:100%;height:120px;object-fit:cover;background:#fff;border-radius:6px}
-    .add-btn{width:100%;white-space:nowrap}
-    .cart-float{position:fixed;right:18px;bottom:18px;z-index:9999}
-    .cart-badge{position:relative;left:-10px;top:-10px}
-    .searchbar{max-width:520px;margin-left:auto}
-    .grid-wrap{display:flex;flex-wrap:wrap;gap:6px}
-    @media (max-width:600px){
-      .product-card{width:46%}
-      .prod-img{height:120px}
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dukaan Customer</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{background:#f5f5f5;}
+.item-card{background:#fff;border-radius:10px;padding:10px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.item-img{width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee;}
+.add-btn{margin-top:8px;width:100%;}
+.cart-btn{position:fixed;right:20px;bottom:20px;z-index:999;border-radius:18px;padding:10px 20px;}
+</style>
 </head>
 <body>
-  <nav class="navbar bg-primary text-white mb-3">
-    <div class="container-fluid">
-      <span class="navbar-brand text-white">🛒 Dukaan</span>
-      <div class="d-flex align-items-center w-50">
-        <select id="categoryFilter" class="form-select form-select-sm me-2" style="max-width:220px">
-          <option value="">All Categories</option>
-        </select>
-        <input id="searchInput" class="form-control form-control-sm searchbar" placeholder="Search items...">
-      </div>
+
+<nav class="navbar navbar-dark bg-primary px-3">
+  <span class="navbar-brand">📦 Dukaan</span>
+  <span class="text-white" id="shop-id-label">SHOP001</span>
+</nav>
+
+<div class="container mt-3">
+  <div class="row g-2">
+    <div class="col-6">
+      <select id="category-filter" class="form-select">
+        <option value="all">All Categories</option>
+      </select>
     </div>
-  </nav>
-
-  <div class="container-fluid">
-    <div id="previewArea" class="mb-3 text-center"></div>
-    <div id="itemsWrap" class="grid-wrap"></div>
-    <div id="emptyMsg" class="text-center text-muted mt-4">लोड कर रहा है...</div>
-  </div>
-
-  <!-- Cart floating -->
-  <div class="cart-float">
-    <button class="btn btn-primary position-relative" id="openCartBtn">
-      🛒 Cart <span id="cartCount" class="badge bg-danger cart-badge">0</span>
-    </button>
-  </div>
-
-  <!-- Cart Modal -->
-  <div class="modal fade" id="cartModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Your Cart</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div id="cartItemsWrap"></div>
-          <hr/>
-          <div class="d-flex justify-content-between align-items-center">
-            <strong>Total Amount:</strong>
-            <h5 id="cartTotal">₹0</h5>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button class="btn btn-success" id="checkoutBtn">Proceed to Checkout</button>
-        </div>
-      </div>
+    <div class="col-6">
+      <input id="search-box" class="form-control" placeholder="Search items...">
     </div>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <div id="loading" class="text-center mt-4">लोड कर रहा है…</div>
+  <div id="items-list" class="row mt-3"></div>
+</div>
+
+<button class="btn btn-primary cart-btn" onclick="openCart()">
+🛒 Cart • <span id="cart-count">0</span>
+</button>
+
+<div class="modal fade" id="cartModal">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Your Cart</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="cart-items"></div>
+      <div class="p-3 text-end">
+        <strong>Total: ₹<span id="cart-total">0</span></strong>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-success">Proceed to Checkout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-/* ====== CONFIG ====== */
+// CONFIG
 const firebaseConfig = {
-  apiKey: "REPLACE_API_KEY",
-  authDomain: "REPLACE.firebaseapp.com",
-  projectId: "REPLACE",
-  storageBucket: "REPLACE.appspot.com",
+  apiKey: "AIzaSyAomDsqeL0rXvnudqUsudnZW0phuqMQbvY",
+  authDomain: "shopkeeper-99756.firebaseapp.com",
+  projectId: "shopkeeper-99756",
+  storageBucket: "shopkeeper-99756.appspot.com"
 };
-if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Cloudinary (user provided)
-const CLOUDINARY_CLOUD = 'darmz4wsz';
-const CLOUDINARY_UPLOAD_PRESET = 'emotional_preset';
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/upload`;
-
-// default shop (user said all items are in SHOP001)
-let shopId = 'SHOP001';
-
-// in-memory state
+let shopId = "SHOP001";
 let allItems = [];
-let filteredItems = [];
-let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-/* ======= UI Helpers ======= */
-function setEmpty(msg){
-  document.getElementById('emptyMsg').textContent = msg;
-}
-function updateCartBadge(){
-  const count = cart.reduce((s,i)=> s + (i.qty||0),0);
-  document.getElementById('cartCount').textContent = count;
-}
-function saveCart(){
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartBadge();
-}
+// Helpers
+function getImg(u){ return u ? u : "https://via.placeholder.com/300x200?text=No+Image"; }
+function saveCart(){ localStorage.setItem("cart", JSON.stringify(cart)); }
+function updateCartBadge(){ document.getElementById("cart-count").innerText = cart.length; }
 
-/* ======= Render items ======= */
-function renderItems(list){
-  const wrap = document.getElementById('itemsWrap');
-  wrap.innerHTML = '';
-  if(!list || list.length===0){
-    setEmpty('कोई आइटम नहीं मिला।');
-    return;
-  } else setEmpty('');
-  list.forEach(item=>{
-    const img = item.imageUrl || 'https://via.placeholder.com/300x200?text=img';
-    const div = document.createElement('div');
-    div.className = 'product-card card p-2';
-    div.innerHTML = `
-      <img src="${img}" class="prod-img mb-2" alt="">
-      <div class="small text-muted">${item.category||''}</div>
-      <div class="fw-bold">${item.name||''}</div>
-      <div class="small">₹${item.price||0} &nbsp; <span class="text-success">${(item.discountPercent||0)}%</span></div>
-      <div class="small">Stock: ${item.stock||0} ${item.unit||''}</div>
-      <button class="btn btn-sm btn-primary mt-2 add-btn" data-id="${item._id}">Add to Cart</button>
-    `;
-    wrap.appendChild(div);
-  });
-  // attach handlers
-  document.querySelectorAll('.add-btn').forEach(b=>{
-    b.onclick = () => {
-      const id = b.getAttribute('data-id');
-      addToCart(id,1);
-    };
-  });
-}
-
-/* ======= Inventory listener / load once ======= */
-async function loadInventory(){
-  try{
-    const col = db.collection('shops').doc(shopId).collection('items').orderBy('name');
-    const snap = await col.get();
-    allItems = [];
-    snap.forEach(d=>{
-      const it = d.data();
-      it._id = d.id;
-      allItems.push(it);
-    });
-    filteredItems = [...allItems];
-    populateCategories();
-    renderItems(filteredItems);
-  }catch(e){
-    console.error('Load inventory error', e);
-    setEmpty('Error loading inventory: ' + e.message);
-  }
-}
-
-/* ======= Filters ======= */
-function populateCategories(){
-  const set = new Set(allItems.map(i=>i.category).filter(Boolean));
-  const sel = document.getElementById('categoryFilter');
-  sel.innerHTML = '<option value="">All Categories</option>';
-  set.forEach(c=>{
-    const o = document.createElement('option');
-    o.value = c; o.textContent = c;
-    sel.appendChild(o);
-  });
-  sel.onchange = applyFilters;
-  document.getElementById('searchInput').oninput = applyFilters;
-}
-function applyFilters(){
-  const cat = document.getElementById('categoryFilter').value.toLowerCase();
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  filteredItems = allItems.filter(i=>{
-    if(cat && (i.category||'').toLowerCase() !== cat) return false;
-    if(q){
-      const t = (i.name||'') + ' ' + (i.category||'') + ' ' + (i.unit||'');
-      return t.toLowerCase().includes(q);
-    }
-    return true;
-  });
-  renderItems(filteredItems);
-}
-
-/* ======= Cart actions ======= */
-function addToCart(id, qty){
-  const item = allItems.find(x=>x._id === id);
-  if(!item) return alert('Item not found');
-  const c = cart.find(x=>x._id===id);
-  if(c){ c.qty += qty; } else cart.push({_id:id, name:item.name, price:item.offerPrice||item.price||0, qty:qty});
-  saveCart();
-  showCartModal(); // feedback
-}
-
-function changeQty(id, delta){
-  const idx = cart.findIndex(c=>c._id===id);
-  if(idx === -1) return;
-  cart[idx].qty += delta;
-  if(cart[idx].qty <= 0) cart.splice(idx,1);
-  saveCart();
-  renderCartItems();
-}
-
-/* ======= Render Cart Modal ======= */
-function renderCartItems(){
-  const wrap = document.getElementById('cartItemsWrap');
-  wrap.innerHTML = '';
-  if(cart.length===0) wrap.innerHTML = '<div class="text-center text-muted">Cart is empty.</div>';
-  let total = 0;
-  cart.forEach(c=>{
-    total += (c.price||0) * (c.qty||0);
-    const row = document.createElement('div');
-    row.className = 'd-flex align-items-center justify-content-between mb-2';
-    row.innerHTML = `
-      <div>
-        <div class="fw-bold">${c.name}</div>
-        <div class="small text-muted">₹${c.price} x ${c.qty} = ₹${(c.price*c.qty)}</div>
-      </div>
-      <div>
-        <button class="btn btn-sm btn-outline-secondary me-1" data-id="${c._id}" data-action="dec">-</button>
-        <span class="mx-1">${c.qty}</span>
-        <button class="btn btn-sm btn-outline-secondary ms-1" data-id="${c._id}" data-action="inc">+</button>
-      </div>
-    `;
-    wrap.appendChild(row);
-  });
-  document.getElementById('cartTotal').textContent = '₹' + total;
-  // attach qty handlers
-  wrap.querySelectorAll('button[data-action]').forEach(b=>{
-    b.onclick = ()=> {
-      const id = b.getAttribute('data-id');
-      const act = b.getAttribute('data-action');
-      changeQty(id, act==='inc'?1:-1);
-    };
-  });
-  updateCartBadge();
-}
-
-/* ======= Cart modal helpers ======= */
-const cartModalEl = document.getElementById('cartModal');
-const cartModal = new bootstrap.Modal(cartModalEl);
-document.getElementById('openCartBtn').addEventListener('click', ()=> showCartModal());
-function showCartModal(){
-  renderCartItems();
-  cartModal.show();
-}
-document.getElementById('checkoutBtn').addEventListener('click', ()=>{
-  alert('Checkout flow not implemented in this demo.');
+// Load items
+db.collection("shops").doc(shopId).collection("items").orderBy("name")
+.onSnapshot(s => {
+  document.getElementById("loading").style.display = "none";
+  allItems = s.docs.map(d=>({id:d.id,...d.data()}));
+  renderItems(allItems);
 });
 
-/* ======= Init ======= */
-updateCartBadge();
-loadInventory();
+// Render Items
+function renderItems(list){
+  let html="";
+  if(list.length===0){
+    html = "<div class='text-center mt-4'>कोई आइटम नहीं मिला।</div>";
+  } else {
+    html = list.map(i=>`
+      <div class="col-6">
+        <div class="item-card">
+          <img class="item-img" src="${getImg(i.imageUrl)}">
+          <strong>${i.name}</strong><br>
+          ₹${i.offerPrice ?? i.price}  
+          <button class="btn btn-primary add-btn" onclick="addToCart('${i.id}')">Add to Cart</button>
+        </div>
+      </div>
+    `).join("");
+  }
+  document.getElementById("items-list").innerHTML = html;
+}
+
+// Add to Cart
+function addToCart(id){
+  if(!cart.find(x=>x.id===id)){
+    let item = allItems.find(x=>x.id===id);
+    cart.push({...item, qty:1});
+    saveCart();
+    updateCartBadge();
+  }
+  openCart();
+}
+
+// Cart Modal
+function openCart(){
+  let html = cart.map(i=>`
+    <div class="d-flex justify-content-between border-bottom py-2">
+      <div>
+        <strong>${i.name}</strong><br>
+        ₹${i.offerPrice ?? i.price} × ${i.qty}
+      </div>
+      <div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${i.id}',-1)">-</button>
+        <span class="mx-2">${i.qty}</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${i.id}',1)">+</button>
+      </div>
+    </div>
+  `).join("");
+  document.getElementById("cart-items").innerHTML = html;
+  updateTotal();
+  new bootstrap.Modal(document.getElementById('cartModal')).show();
+}
+
+function changeQty(id, d){
+  let it = cart.find(x=>x.id===id);
+  if(!it) return;
+  it.qty += d;
+  if(it.qty<=0) cart = cart.filter(x=>x.id!==id);
+  saveCart();
+  updateCartBadge();
+  openCart();
+}
+
+function updateTotal(){
+  let t = cart.reduce((s,i)=> s + (i.offerPrice ?? i.price) * i.qty, 0);
+  document.getElementById("cart-total").innerText = t;
+}
+
+// Filters
+document.getElementById("search-box").oninput = e=>{
+  let v = e.target.value.toLowerCase();
+  renderItems(allItems.filter(x=>x.name.toLowerCase().includes(v)));
+};
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
